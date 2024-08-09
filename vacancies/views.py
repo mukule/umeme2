@@ -23,7 +23,7 @@ import datetime
 from django.utils import timezone
 from users.decorators import *
 from .applicant_experience import *
-from hr.mails import *
+from main.mails import *
 
 
 def user_has_access_level_5(user):

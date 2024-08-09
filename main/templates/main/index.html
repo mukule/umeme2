@@ -8,7 +8,7 @@
             {% for job_type in job_types %}
                 <div class="carousel-item {% if forloop.first %}active{% endif %}">
                     <img class="d-block w-100" src="{{ job_type.banner.url }}" alt="{{ job_type.name }} Banner">
-                    <div class="carousel-caption d-none d-md-block">
+                    <div class="carousel-caption d-md-block">
                         <h3 class="text-white">{{ job_type.name }}</h3>
                         <p>{{ job_type.description }}</p>
                         <a href="{% url 'main:vacs' pk=job_type.pk %}" class="btn btn-primary btn-lg shadow-sm mb-0 carousel-btn">Explore Opportunities</a>
@@ -67,7 +67,7 @@
                     <div class="card-body text-start">
                         <h5 class="card-title">{{ job_type.name }}</h5>
                         <p class="card-text">{{ job_type.description }}</p>
-                        <a href="{% url 'main:vacs' pk=job_type.pk %}" class="btn btn-rounded shadow-sm mb-0 position-relative" style="background-color: #fd7e14; border-color: #fd7e14; padding-right: 2.5rem;">
+                        <a href="{% url 'main:vacs' pk=job_type.pk %}" class="btn btn-rounded shadow-sm mb-0 position-relative" style="background-color: #fd7e14; border-color: #fd7e14; padding-right: 2.5rem; color: #fff;">
                             Explore
                             <span class="btn-icon-circle">
                                 <i class="fas fa-arrow-right"></i>

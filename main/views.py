@@ -14,6 +14,7 @@ from django.db.models import Q
 from users.checks import *
 from datetime import datetime
 from .experience import *
+from users.forms import *
 
 
 @access_level_check(user_access_level=5, redirect_view_name='vacancies:internal')
@@ -25,11 +26,7 @@ def index(request):
 
 
 def job_type_detail(request, pk):
-    if not request.user.is_authenticated:
-        messages.error(
-            request, "You need to log in to view Advertised Opportunities.")
-        return redirect('users:login')
-
+    
     search_query = request.GET.get('search')
     job_type_filter = request.GET.get('vacancy_type')
     current_date = date.today()

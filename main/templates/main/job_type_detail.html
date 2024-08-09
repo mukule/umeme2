@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block content %}
-    <div class="custom-carousel">
+    <div class="carousel-container">
         <div id="carouselExampleFade" class="carousel slide carousel-fade" data-ride="carousel">
             <div class="carousel-inner">
                 <div class="carousel-item active">
@@ -13,6 +13,7 @@
                     </div>
                     <div class="carousel-caption mt-md-4 d-none d-md-block">
                         <h3 class="text-white">{{ job_type.name }}</h3>
+                        <p>{{ job_type.description }}</p>
                     </div>
                 </div>
             </div>
