@@ -8,11 +8,11 @@
         <div id="carouselExampleFade" class="carousel slide carousel-fade" data-ride="carousel">
             <div class="carousel-inner">
                 <div class="carousel-item active">
-                    <div style="position: relative;">
+                    <div class="carousel-image-container">
                         <img class="d-block img-fluid" src="{{ job.job_type.banner.url }}" alt="{{ job_type.name }} Banner" style="width: 100%;">
-                        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 1;"></div>
+                        <div class="carousel-overlay"></div>
                     </div>
-                    <div class="carousel-caption mt-md-4 d-none d-md-block">
+                    <div class="carousel-caption mt-md-4 d-md-block">
                         <h3 class="text-white">{{ job.title }} - {{ job.ref }}</h3>
                     </div>
                 </div>
@@ -21,111 +21,57 @@
     </div>
 
     <!-- Page Content -->
-    <div class="page-content">
-        <div class="container-fluid">
-            {% if user.is_authenticated %}
-    <div class="container mt-4">
-        <div class="row justify-content-center mb-3">
-            <div class="card border-0">
-                <div class="card-header border-0">
-                    <ul class="nav nav-tabs card-header-tabs custom-tabs mt-2 mb-2">
-                        {% if user.access_level != 5 %}
-                            <li class="nav-item">
-                                <a class="nav-link {% if request.resolver_match.url_name == 'bio_info' %}active{% endif %}" href="{% url 'main:bio_info' %}">Bio Information</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link {% if request.resolver_match.url_name == 'high_school' %}active{% endif %}" href="{% url 'main:high_school' %}">Basic Education</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link {% if request.resolver_match.url_name == 'college' %}active{% endif %}" href="{% url 'main:college' %}">College/University</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link {% if request.resolver_match.url_name == 'certs' %}active{% endif %}" href="{% url 'main:certs' %}">Certifications</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link {% if request.resolver_match.url_name == 'memberships' %}active{% endif %}" href="{% url 'main:memberships' %}">Memberships</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link {% if request.resolver_match.url_name == 'experience' %}active{% endif %}" href="{% url 'main:experience' %}">Work Experience</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link {% if request.resolver_match.url_name == 'refs' %}active{% endif %}" href="{% url 'main:refs' %}">Referees</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link {% if request.resolver_match.url_name == 'resume' %}active{% endif %}" href="{% url 'main:resume' %}">Review</a>
-                            </li>
-                        {% else %}
-                            <li class="nav-item">
-                                <a class="nav-link {% if request.resolver_match.url_name == 'career_objective' %}active{% endif %}" href="{% url 'main:career_objective' %}">Executive Summary</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link {% if request.resolver_match.url_name == 'college' %}active{% endif %}" href="{% url 'main:college' %}">Basic Education</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link {% if request.resolver_match.url_name == 'college' %}active{% endif %}" href="{% url 'main:college' %}">College/University</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link {% if request.resolver_match.url_name == 'certs' %}active{% endif %}" href="{% url 'main:certs' %}">Certifications</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link {% if request.resolver_match.url_name == 'memberships' %}active{% endif %}" href="{% url 'main:memberships' %}">Memberships</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link {% if request.resolver_match.url_name == 'experience' %}active{% endif %}" href="{% url 'main:experience' %}">Work Experience</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link {% if request.resolver_match.url_name == 'refs' %}active{% endif %}" href="{% url 'main:refs' %}">Referees</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link {% if request.resolver_match.url_name == 'resume' %}active{% endif %}" href="{% url 'main:resume' %}">Review</a>
-                            </li>
-                        {% endif %}
-                    </ul>
+    <div class="page-content" style="background-color: #f8f9fa !important;">
+        {% if user.is_authenticated %}
+            <!-- Quick Navigation -->
+            <div class="quick-nav">
+                <div class="row justify-content-center mb-0">
+                    <div class="col-12">
+                        <div class="custom-nav-header">
+                            <ul class="nav nav-tabs custom-tabs flex-wrap justify-content-center">
+                                <li class="nav-item">
+                                    <a class="nav-link {% if request.resolver_match.url_name == 'bio_info' %}active{% endif %}" href="{% url 'main:bio_info' %}">Bio Information</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {% if request.resolver_match.url_name == 'high_school' %}active{% endif %}" href="{% url 'main:high_school' %}">Basic Education</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {% if request.resolver_match.url_name == 'college' %}active{% endif %}" href="{% url 'main:college' %}">College/University</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {% if request.resolver_match.url_name == 'certs' %}active{% endif %}" href="{% url 'main:certs' %}">Certifications</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {% if request.resolver_match.url_name == 'memberships' %}active{% endif %}" href="{% url 'main:memberships' %}">Memberships</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {% if request.resolver_match.url_name == 'experience' %}active{% endif %}" href="{% url 'main:experience' %}">Work Experience</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {% if request.resolver_match.url_name == 'refs' %}active{% endif %}" href="{% url 'main:refs' %}">Referees</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {% if request.resolver_match.url_name == 'resume' %}active{% endif %}" href="{% url 'main:resume' %}">Review</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-    </div>
-{% endif %}
+        {% endif %}
 
-
-           
-            <div class="card p-2 border-0">
-                <div class="container">
-                    {% if messages %}
-                    {% for message in messages %}
-                        {% if message.tags == 'success' %}
-                            <div class="alert alert-success alert-dismissible" role="alert">
-                               
-                                {{ message|safe|escape }}
-                            </div>
-                        {% elif message.tags == 'error' %}
-                            <div class="alert alert-danger alert-dismissible" role="alert">
-                               
-                                {{ message|safe }}
-                            </div>
-                        {% elif message.tags == 'info' %}
-                            <div class="alert alert-info alert-dismissible" role="alert">
-                               
-                                {{ message|safe|escape }}
-                            </div>
-                     
-                <div class="alert alert-warning alert-dismissible" role="alert">
-                    <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
-                    {{ message|safe|escape }}
-                </div>
-                        {% endif %}
-                    {% endfor %}
-                {% endif %}
-                </div>
-                <h2 class="card-title text-center" style="color: #FD7E14;">Vacancy Details - {{ job.title }} - {{ job.ref }}</h2>
-                
-
-                <div class="container mt-4">
-                    <!-- Job Summary and Responsibilities -->
-                    <div class="row mt-3">
-                        <div class="col-md-8">
+        <div class="mt-4 p-4">
+            <div class="row details-section">
+                <!-- Job Details -->
+                <div class="col-md-8 sectiona">
+                    <div class="card border-0 shadow-lg bg-white">
+                        <div class="card-body p-5">
                             <div class="row mb-4">
                                 <div class="col-md-12">
+                                    <h2 class="card-title"  style="color: #FD7E14;">
+                                        {{ job.title }} / {{ job.ref }}
+                                        <small>{{ job.job_discipline.name }}</small>
+                                    </h2>
                                     <h4 class="card-subtitle">Job Summary</h4>
                                     <p class="card-text">{{ job.description|safe }}</p>
                                 </div>
@@ -137,99 +83,76 @@
                                 </div>
                             </div>
                         </div>
-                
-                        <!-- Job Details -->
-                        <div class="col-md-4">
-                            <div class="card mb-3">
-                                <div class="card-body">
-                                    <div class="row mb-2">
-                                        <div class="col-md-6"><h4 class="card-subtitle">Nature of Job:</h4></div>
-                                        <div class="col-md-6">{{ job.job_type }}</div>
-                                    </div>
-                                    <div class="row mb-2">
-                                        <div class="col-md-6"><h4 class="card-subtitle">Job Discipline:</h4></div>
-                                        <div class="col-md-6">{{ job.job_discipline }}</div>
-                                    </div>
-                                    <div class="row mb-2">
-                                        <div class="col-md-6"><h4 class="card-subtitle">Min Education Level:</h4></div>
-                                        <div class="col-md-6">{{ job.min_educational_level }}</div>
-                                    </div>
-                                    <div class="row mb-2">
-                                        <div class="col-md-6"><h4 class="card-subtitle">Experience:</h4></div>
-                                        <div class="col-md-6">{{ job.min_work_experience }} years</div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-md-6"><h4 class="card-subtitle">Application End:</h4></div>
-                                        <div class="col-md-6">{{ job.date_close }}</div>
-                                    </div>
-                                </div>
-                            </div>
-                
-                            <!-- Additional Requirements -->
-                            {% if job.certifications_required or job.college_required or job.membership_required %}
-                                <div class="card">
-                                    <div class="card-body">
-                                        <h4 class="card-title">Additional Requirements</h4>
-                                        {% if job.certifications_required %}
-                                            <p>Relevant certifications Required</p>
-                                        {% endif %}
-                                        {% if job.college_required %}
-                                            <p>College/Degree Certificates Required</p>
-                                        {% endif %}
-                                        {% if job.membership_required %}
-                                            <p>Relevant Membership Certificates Required</p>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            {% endif %}
-                        </div>
                     </div>
-                
-          <!-- Terms Acceptance -->
-<div class="text-center mt-3">
-    {% if terms.accepted %}
-        <a href="{% url 'users:terms_acceptance' %}">
-            <i class="fas fa-check-square active"></i>
-        </a>
-        <a class="ml-2" href="{% url 'main:terms' %}">Terms and Conditions Accepted</a>
-    {% else %}
-        <a href="{% url 'users:terms_acceptance' %}">
-            <i class="fa-regular fa-square"></i>
-        </a>
-        <a class="ml-2" href="{% url 'main:terms' %}">Accept Terms and Conditions</a>
-    {% endif %}
-</div>
-
-<!-- Apply Button -->
-<div class="text-center mt-3 mb-2">
-    {% if user.is_authenticated %}
-        {% if terms.accepted %}
-        <a href="{{ request.META.HTTP_REFERER }}" class="btn btn-primary active">Back</a>
-            <a href="{% url 'vacancies:apply' vacancy_id=job.id %}" class="btn btn-lg btn-primary active">
-                Apply this Job Now <i class="fas fa-arrow-circle-right text-white"></i>
-            </a>
-          
-        {% else %}
-        <a href="{{ request.META.HTTP_REFERER }}" class="btn btn-primary active">Back</a>
-            <a href="#" class="btn btn-lg btn-primary disabled" aria-disabled="true">
-                Apply this Job Now <i class="fas fa-arrow-circle-right text-white"></i>
-            </a>
-           
-            <div class="mt-2">
-                <small class="form-text text-danger">Accept terms and conditions to apply</small>
-            </div>
-        {% endif %}
-    {% else %}
-    <a href="{{ request.META.HTTP_REFERER }}" class="btn btn-primary active">Back</a>
-        <a href="{% url 'users:login' %}" class="btn btn-primary">Login to Apply</a>
-       
-    {% endif %}
-</div>
-
-
                 </div>
-                
+
+                <!-- Job Specifications -->
+                <div class="col-md-4 sectionb" id="sectionb">
+                    <div class="card border-0 shadow-lg p-5 bg-white">
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item"><b>Job Type:</b> {{ job.job_type }}</li>
+                            <li class="list-group-item"><b>Minimum Education Level:</b> {{ job.min_educational_level }}</li>
+                            <li class="list-group-item"><b>Minimum Experience:</b> {{ job.min_work_experience }}</li>
+                            <li class="list-group-item"><b>Open until:</b> {{ job.date_close }}</li>
+                        </ul>
+
+                        {% if job.certifications_required or job.college_required or job.membership_required %}
+                            <div class="mt-4">
+                                <h4 class="card-subtitle"  style="color: #FD7E14;">Additional Requirements</h4>
+                                {% if job.college_required %}
+                                    <p>College/Degree Certificates Required</p>
+                                {% endif %}
+                                {% if job.certifications_required %}
+                                    <p>Relevant Certifications Required</p>
+                                {% endif %}
+                                {% if job.membership_required %}
+                                    <p>Relevant Membership Certificates Required</p>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+
+
+                         <div class="text-center mt-3">
+                {% if terms.accepted %}
+                    <a href="{% url 'users:terms_acceptance' %}">
+                        <i class="fas fa-check-square active"></i>
+                    </a>
+                    <a class="ml-2" href="{% url 'main:terms' %}" style="color: #FD7E14;">Terms and Conditions Accepted</a>
+                {% else %}
+                    <a href="{% url 'users:terms_acceptance' %}">
+                        <i class="fa-regular fa-square"></i>
+                    </a>
+                    <a class="ml-2" href="{% url 'main:terms' %}" style="color: #FD7E14;">Accept Terms and Conditions</a>
+                {% endif %}
             </div>
+
+            <div class="text-center mt-3 mb-2">
+                {% if user.is_authenticated %}
+                    {% if terms.accepted %}
+                        <a href="{{ request.META.HTTP_REFERER }}" class="btn btn-primary active">Back</a>
+                        <a href="{% url 'vacancies:apply' vacancy_id=job.id %}" class="btn btn-lg btn-primary active">
+                            Apply this Job Now <i class="fas fa-arrow-circle-right text-white"></i>
+                        </a>
+                    {% else %}
+                        <a href="{{ request.META.HTTP_REFERER }}" class="btn btn-primary active">Back</a>
+                        <a href="#" class="btn btn-lg btn-primary disabled" aria-disabled="true">
+                            Apply this Job Now <i class="fas fa-arrow-circle-right text-white"></i>
+                        </a>
+                        <div class="mt-2">
+                            <small class="form-text text-danger">Accept terms and conditions to apply</small>
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <a href="{{ request.META.HTTP_REFERER }}" class="btn btn-primary active">Back</a>
+                    <a href="{% url 'users:login' %}" class="btn btn-primary">Login to Apply</a>
+                {% endif %}
+            </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Terms and Application -->
+           
         </div>
     </div>
 {% endblock content %}

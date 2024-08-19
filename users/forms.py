@@ -96,10 +96,6 @@ class RegistrantsEditForm(forms.ModelForm):
         self.fields['id_number'].widget.attrs.update(
             {'class': 'form-control', 'placeholder': 'ID Number'})
 
-        # Make fields optional if needed, e.g.:
-        # self.fields['id_number'].required = False
-        # self.fields['staff_no'].required = False
-
 
 class UserLoginForm(AuthenticationForm):
     def __init__(self, *args, **kwargs):
@@ -162,9 +158,9 @@ class CustomPasswordResetForm(PasswordResetForm):
     id_number = forms.IntegerField(
         widget=forms.NumberInput(
             attrs={'class': 'form-control',
-                   'placeholder': 'Staff No without Kgn'}
+                   'placeholder': 'Enter ID Number'}
         ),
-        label='Staff Number',
+        label='Id Number',
         required=True
     )
 

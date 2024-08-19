@@ -20,6 +20,7 @@
                                 </a>
                             </div>
                             <p class="text-muted mb-3 mt-3 text-center">SIGN UP</p>
+                            
 
                             <form method="POST">
                                 {% csrf_token %}
@@ -55,7 +56,7 @@
                             </form>
                             <div class="row mt-4">
                                 <div class="col-12 text-center">
-                                    <p class="text-muted mb-0">Already Registered? <a href="{% url 'users:login' %}" class="text-muted font-weight-medium ml-1"><b>Login</b></a></p>
+                                    <p class="text-muted mb-0">Already Registered? <a href="{% url 'users:login' %}" class="font-weight-medium ml-1" style="color: #703B97;">SIGN IN</a></p>
                                 </div>
                             </div>
                         </div>

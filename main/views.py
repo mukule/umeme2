@@ -5,16 +5,12 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from vacancies.models import *
 from datetime import *
-import pycountry
-from django.utils.dateparse import parse_date
-from django.db.utils import IntegrityError
-from django.utils import timezone
 from users.decorators import *
 from django.db.models import Q
 from users.checks import *
-from datetime import datetime
 from .experience import *
 from users.forms import *
+import datetime
 
 
 @access_level_check(user_access_level=5, redirect_view_name='vacancies:internal')
@@ -26,7 +22,7 @@ def index(request):
 
 
 def job_type_detail(request, pk):
-    
+
     search_query = request.GET.get('search')
     job_type_filter = request.GET.get('vacancy_type')
     current_date = date.today()
@@ -152,7 +148,6 @@ def high_school(request):
     basic_education_instances = BasicEducation.objects.filter(user=user)[:2]
     further_studies_instance = FurtherStudies.objects.filter(user=user).first()
     all_fields_provided = basic_academic_fields_provided(request)
-    print(all_fields_provided)
 
     return render(request, 'main/high_school.html', {
         'user': user,
@@ -364,35 +359,47 @@ def basic_info(request, user_id):
 
     basic_education_instance = BasicEducation.objects.filter(user=user).first()
 
-    # Set initial_data for email and full_name based on the existence of user_info
     initial_data = {}
     if user_info is None:
         initial_data['email_address'] = user.email
-        initial_data['full_name'] = user.get_full_name() or ''
         initial_data['id_number'] = user.id_number
 
     if request.method == 'POST':
         form = ResumeForm(request.POST, instance=user_info)
         if form.is_valid():
-            resume = form.save(commit=False)
-            resume.user = user
+            id_number = form.cleaned_data.get('id_number')
 
-            # Update the user's id_number with the value from the form
-            user.id_number = form.cleaned_data.get('id_number')
-            user.save()
+            # Convert id_number to string to avoid TypeError
+            id_number_str = str(id_number)
 
-            # Set disability_number to None if disability is False
-            if not resume.disability:
-                resume.disability_number = None
+            # Custom validation for id_number
+            if not id_number_str:
+                form.add_error('id_number', "ID Number is required.")
+            elif len(id_number_str) != 8:
+                form.add_error(
+                    'id_number', "ID Number must be exactly 8 digits long.")
+            elif id_number_str == '00000000':
+                form.add_error('id_number', "ID Number cannot be all zeros.")
+            else:
+                resume = form.save(commit=False)
+                resume.user = user
 
-            # Set county to 'N/A' if country of residence is not Kenya
-            if resume.country_of_residence != 'KE':
-                resume.county = 'N/A'
+                # Update the user's id_number with the value from the form
+                user.id_number = id_number
+                user.save()
 
-            resume.save()
-            messages.success(
-                request, 'Your information has been updated successfully.')
-            return redirect('main:bio_info')
+                # Set disability_number to None if disability is False
+                if not resume.disability:
+                    resume.disability_number = None
+
+                # Set county to 'N/A' if country of residence is not Kenya
+                if resume.country_of_residence != 'KE':
+                    resume.county = 'N/A'
+
+                resume.save()
+                messages.success(
+                    request, 'Your information has been updated successfully.')
+                return redirect('main:bio_info')
         else:
             messages.error(
                 request, 'There was an error in the form submission. Please check your inputs.')
@@ -411,15 +418,34 @@ def basic_info(request, user_id):
 @login_required
 def basic_academic(request):
     job_types = JobType.objects.exclude(name="Internal")
+
     if request.method == 'POST':
-        form = EducationalInformationForm(request.POST, request.FILES,)
+        form = EducationalInformationForm(request.POST, request.FILES)
+
         if form.is_valid():
-            basic_education = form.save(commit=False)
-            basic_education.user = request.user
-            basic_education.save()
-            messages.success(
-                request, 'High School information updated successfully.')
-            return redirect('main:high_school')
+            date_started = form.cleaned_data.get('date_started')
+            date_ended = form.cleaned_data.get('date_ended')
+            current_date = datetime.datetime.now().date()
+
+            # Check if date_started or date_ended is in the future
+            if date_started and date_started > current_date:
+                form.add_error(
+                    'date_started', 'Date Started cannot be a future Date')
+            if date_ended and date_ended > current_date:
+                form.add_error(
+                    'date_ended', 'Date Ended cannot be a future Date.')
+            if date_started and date_ended and date_started > date_ended:
+                form.add_error(
+                    'date_started', 'You cannot End before you Start, Come on !')
+
+            if not form.errors:
+                basic_education = form.save(commit=False)
+                basic_education.user = request.user
+                basic_education.save()
+                messages.success(
+                    request, 'Basic Education Updated Successfully')
+                return redirect('main:high_school')
+
     else:
         form = EducationalInformationForm()
 
@@ -428,6 +454,7 @@ def basic_academic(request):
         'basic_education_instances': BasicEducation.objects.filter(user=request.user),
         'job_types': job_types
     }
+
     return render(request, 'main/basic_academic.html', context)
 
 
@@ -442,19 +469,36 @@ def update_basic_academic(request, instance_id):
         return redirect('main:basic_academic')
 
     further_studies_instance = FurtherStudies.objects.filter(user=user).first()
-
     current_certificate = basic_education.certificate
 
     if request.method == 'POST':
         form = EducationalInformationForm(
             request.POST, request.FILES, instance=basic_education)
-        if form.is_valid():
-            form.save()
-            messages.success(
-                request, 'Your information has been updated successfully.')
-            return redirect('main:high_school')
-    else:
 
+        if form.is_valid():
+            date_started = form.cleaned_data.get('date_started')
+            date_ended = form.cleaned_data.get('date_ended')
+            # Use Django's timezone utility for current date
+            current_date = datetime.datetime.now().date()
+
+            # Check if date_started or date_ended is in the future
+            if date_started and date_started > current_date:
+                form.add_error(
+                    'date_started', 'Date Started cannot be in the future.')
+            if date_ended and date_ended > current_date:
+                form.add_error(
+                    'date_ended', 'Date Ended cannot be in the future.')
+            if date_started and date_ended and date_started > date_ended:
+                form.add_error(
+                    'date_started', 'Date Started cannot be later than Date Ended.')
+
+            if not form.errors:
+                form.save()
+                messages.success(
+                    request, 'Your information has been updated successfully.')
+                return redirect('main:high_school')
+
+    else:
         form = EducationalInformationForm(instance=basic_education)
         form.fields['certificate'].initial = None
 
@@ -464,6 +508,7 @@ def update_basic_academic(request, instance_id):
         'job_types': job_types,
         'fs': further_studies_instance
     }
+
     return render(request, 'main/basic_academic.html', context)
 
 
@@ -486,13 +531,28 @@ def further_studies(request):
     if request.method == 'POST':
         form = FurtherStudiesForm(request.POST, request.FILES)
         if form.is_valid():
-            further_studies = form.save(commit=False)
-            further_studies.user = user
-            further_studies.save()
+            date_started = form.cleaned_data.get('date_started')
+            date_ended = form.cleaned_data.get('date_ended')
+            current_date = datetime.datetime.now().date()
 
-            messages.success(
-                request, 'Higher Education Details Added succesfully.')
-            return redirect('main:college')
+            # Check if date_started or date_ended is in the future
+            if date_started and date_started > current_date:
+                form.add_error(
+                    'date_started', 'Date Started cannot be in the future.')
+            if date_ended and date_ended > current_date:
+                form.add_error(
+                    'date_ended', 'Date Ended cannot be in the future.')
+            if date_started and date_ended and date_started > date_ended:
+                form.add_error(
+                    'date_started', 'Date Started cannot be later than Date Ended.')
+
+            if not form.errors:
+                further_studies = form.save(commit=False)
+                further_studies.user = user
+                further_studies.save()
+                messages.success(
+                    request, 'Higher Education Details Added successfully.')
+                return redirect('main:college')
 
     else:
         form = FurtherStudiesForm()
@@ -511,10 +571,12 @@ def further_studies(request):
 def update_further_studies(request, instance_id):
     job_types = JobType.objects.exclude(name="Internal")
     user = request.user
+
     try:
         further_studies = FurtherStudies.objects.get(user=user, pk=instance_id)
     except FurtherStudies.DoesNotExist:
         return redirect('main:basic_academic')
+
     basic_education_instance = BasicEducation.objects.filter(user=user).first()
     certification_instance = Certification.objects.filter(user=user).first()
 
@@ -522,11 +584,26 @@ def update_further_studies(request, instance_id):
         form = FurtherStudiesForm(
             request.POST, request.FILES, instance=further_studies)
         if form.is_valid():
-            form.save()
-            messages.success(
-                request, 'Your information has been updated successfully.')
+            date_started = form.cleaned_data.get('date_started')
+            date_ended = form.cleaned_data.get('date_ended')
+            current_date = datetime.datetime.now().date()
 
-            return redirect('main:college')
+            # Check if date_started or date_ended is in the future
+            if date_started and date_started > current_date:
+                form.add_error(
+                    'date_started', 'Date Started cannot be in the future.')
+            if date_ended and date_ended > current_date:
+                form.add_error(
+                    'date_ended', 'Date Ended cannot be in the future.')
+            if date_started and date_ended and date_started > date_ended:
+                form.add_error(
+                    'date_started', 'Date Started cannot be later than Date Ended.')
+
+            if not form.errors:
+                form.save()
+                messages.success(
+                    request, 'Your information has been updated successfully.')
+                return redirect('main:college')
 
     else:
         form = FurtherStudiesForm(instance=further_studies)
@@ -556,25 +633,36 @@ def certification(request):
 
     further_studies_instance = FurtherStudies.objects.filter(user=user).all()
     membership_instance = Membership.objects.filter(user=user).all()
+
     if request.method == 'POST':
         form = CertificationForm(request.POST, request.FILES)
+
         if form.is_valid():
-            certification = form.save(commit=False)
+            date_attained = form.cleaned_data.get('date_attained')
+            current_date = datetime.datetime.now().date()
 
-            # Check if the name is not blank before saving
-            if certification.name.strip():
-                certification.user = request.user
-                certification.save()
+            # Validate date_attained
+            if date_attained > current_date:
+                form.add_error('date_attained',
+                               'Date Attained cannot be a future.')
 
-                messages.success(
-                    request, 'Your Certification Added succesfully')
+            if not form.errors:
+                certification = form.save(commit=False)
 
-                return redirect('main:certs')
-
-            else:
-                # Display an error message if the name is blank
-                messages.error(
-                    request, 'You cannot submit a Blank Certification')
+                # Check if the name is not blank before saving
+                if certification.name.strip():
+                    certification.user = request.user
+                    certification.save()
+                    messages.success(
+                        request, 'Your Certification Added successfully'
+                    )
+                    return redirect('main:certs')
+                else:
+                    messages.error(
+                        request, 'You cannot submit a Blank Certification'
+                    )
+        else:
+            messages.error(request, 'Please correct the errors below.')
     else:
         form = CertificationForm()
 
@@ -584,7 +672,7 @@ def certification(request):
         'fs': further_studies_instance,
         'ms': membership_instance
     }
-    print(job_types)
+
     return render(request, 'main/certification.html', context)
 
 
@@ -592,27 +680,38 @@ def certification(request):
 def update_certification(request, instance_id):
     job_types = JobType.objects.exclude(name="Internal")
     user = request.user
+
     try:
         certification = Certification.objects.get(user=user, pk=instance_id)
     except Certification.DoesNotExist:
         if user.access_level == 5:
-            # Redirect to a different view if access_level is 5
             return redirect('main:certification')
         return redirect('main:certification')
 
     further_studies_instance = FurtherStudies.objects.filter(user=user).first()
-    membership_instance = Membership.objects.filter(user=user).first()
 
     if request.method == 'POST':
         form = CertificationForm(
-            request.POST, request.FILES, instance=certification)
+            request.POST, request.FILES, instance=certification
+        )
+
         if form.is_valid():
-            form.save()
-            messages.success(
-                request, 'Your information has been updated successfully.')
+            date_attained = form.cleaned_data.get('date_attained')
+            current_date = datetime.datetime.now().date()
 
-            return redirect('main:certs')
+            # Validate date_attained
+            if date_attained > current_date:
+                form.add_error('date_attained',
+                               'Date Attained cannot be a future Date')
 
+            if not form.errors:
+                form.save()
+                messages.success(
+                    request, 'Your information has been updated successfully.'
+                )
+                return redirect('main:certs')
+        else:
+            messages.error(request, 'Please correct the errors below.')
     else:
         form = CertificationForm(instance=certification)
 
@@ -622,7 +721,7 @@ def update_certification(request, instance_id):
         'fs': further_studies_instance,
         'ms': certification
     }
-    print(job_types)
+
     return render(request, 'main/certification.html', context)
 
 
@@ -640,26 +739,30 @@ def membership(request):
     user = request.user
 
     certification_instance = Certification.objects.filter(user=user).all()
-    refees_instance = Referee.objects.filter(user=user).all()
+    referees_instance = Referee.objects.filter(user=user).all()
 
     if request.method == 'POST':
         form = MembershipForm(request.POST, request.FILES)
         if form.is_valid():
             membership = form.save(commit=False)
+            date_joined = form.cleaned_data.get('date_joined')
+            current_date = datetime.datetime.now().date()
 
-            if membership.membership_title.strip():
-                membership.user = request.user
-                membership.save()
-                messages.success(
-                    request, 'Membership Cetifications added succesfully')
-
-                return redirect('main:memberships')
-
+            # Validate that the date joined is not in the future
+            if date_joined > current_date:
+                form.add_error('date_joined',
+                               'Date Awarded cannot be a future Date')
             else:
-                # Display an error message if the name is blank
-                messages.error(request, 'Membership Title cannot be blank.')
+                if membership.membership_title.strip():
+                    membership.user = request.user
+                    membership.save()
+                    messages.success(
+                        request, 'Membership Certifications added successfully')
+                    return redirect('main:memberships')
+                else:
+                    messages.error(
+                        request, 'Membership Title cannot be blank.')
         else:
-            # If the form is not valid, display specific error messages
             for field, errors in form.errors.items():
                 for error in errors:
                     messages.error(request, f"{field}: {error}")
@@ -671,14 +774,13 @@ def membership(request):
         'form': form,
         'job_types': job_types,
         'certs': certification_instance,
-        'refs': refees_instance
+        'refs': referees_instance
     }
     return render(request, 'main/membership.html', context)
 
 
 @login_required
 def update_membership(request, instance_id):
-
     job_types = JobType.objects.exclude(name="Internal")
     user = request.user
     try:
@@ -692,11 +794,18 @@ def update_membership(request, instance_id):
     if request.method == 'POST':
         form = MembershipForm(request.POST, request.FILES, instance=membership)
         if form.is_valid():
-            form.save()
-            messages.success(
-                request, 'Your information has been updated successfully.')
+            date_joined = form.cleaned_data.get('date_joined')
+            current_date = datetime.datetime.now().date()
 
-            return redirect('main:memberships')
+            # Validate that the date joined is not in the future
+            if date_joined > current_date:
+                form.add_error('date_joined',
+                               'Date Awarded cannot be a future Date')
+            else:
+                form.save()
+                messages.success(
+                    request, 'Your information has been updated successfully.')
+                return redirect('main:memberships')
 
     else:
         form = MembershipForm(instance=membership)
@@ -737,7 +846,7 @@ def work_experience(request):
             elif not work_experience.currently_working and (not work_experience.date_started or not work_experience.date_ended):
                 messages.error(
                     request, "Please provide both start and end dates or check 'Currently Working Here'.")
-            elif work_experience.date_started and work_experience.date_started > datetime.now().date():
+            elif work_experience.date_started and work_experience.date_started > datetime.datetime.now().date():
                 messages.error(
                     request, "The start date  cannot be Greator than the current Date")
             elif work_experience.date_ended and work_experience.date_ended > datetime.now().date():
@@ -790,9 +899,9 @@ def update_work_experience(request, instance_id):
             elif not new_work_experience.currently_working and (not new_work_experience.date_started or not new_work_experience.date_ended):
                 messages.error(
                     request, "Please provide both start and end dates or check 'Currently Working Here'.")
-            elif new_work_experience.date_started and new_work_experience.date_started > datetime.now().date():
+            elif new_work_experience.date_started and new_work_experience.date_started > datetime.datetime.now().date():
                 messages.error(
-                    request, "The start date cannot be greater than the current date.")
+                    request, "Date Started cannot be greater than the current date.")
             elif new_work_experience.date_ended and new_work_experience.date_ended > datetime.now().date():
                 messages.error(
                     request, "The end date cannot be greater than the current date.")
@@ -975,24 +1084,15 @@ def delete_professional_summary(request):
 
 @login_required
 def terms(request):
-    job_types = JobType.objects.exclude(name="Internal")
-
     user = request.user
-    print(user)
 
     if user.access_level == 5:
-        try:
-            profile_update = ProfileUpdate.objects.get(user=user)
-            print(profile_update)
-            if not profile_update.password_changed:
-                return render(request, 'main/pass_change.html')
-        except ProfileUpdate.DoesNotExist:
+        terms = Terms.objects.filter(term_type='internal').first()
+    else:
 
-            return render(request, 'main/pass_change.html')
+        terms = Terms.objects.filter(term_type='external').first()
 
-    terms = Terms.objects.first()
-
-    return render(request, 'main/terms.html', {'terms': terms, 'job_types': job_types})
+    return render(request, 'main/terms.html', {'terms': terms})
 
 
 @login_required

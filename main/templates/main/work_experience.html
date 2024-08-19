@@ -64,7 +64,7 @@
                 </ul>
             </div>
             {% endif %}
-            <div class="row">
+            <div class="row mt-4">
                 <div class="col-md-6">
                     {{ form.company_name|as_crispy_field }}
                 </div>
@@ -72,7 +72,7 @@
                     {{ form.position|as_crispy_field }}
                 </div>
             </div>
-            <div class="row">
+            <div class="row mt-4">
                 <div class="col-md-6">
                     {{ form.date_started|as_crispy_field }}
                 </div>
@@ -80,7 +80,7 @@
                     {{ form.date_ended|as_crispy_field }}
                 </div>
             </div>
-            <div class="row">
+            <div class="row mt-4">
                 <div class="col-md-6">
                     {{ form.company_address|as_crispy_field }}
                 </div>
@@ -88,12 +88,15 @@
                     {{ form.company_phone|as_crispy_field }}
                 </div>
             </div>
-            <div class="row">
-                <div class="col-md-6">
+            <div class="row mt-4">
+                <div class="col-md-12">
                     {{ form.responsibilities|as_crispy_field }}
                 </div>
+            </div>
+            <div class="row mt-4">
                 <div class="col-md-6">
                     {{ form.currently_working|as_crispy_field }}
+                    <small style="color: #FD7E14;">Check this if this is your Current job</small>
                 </div>
             </div>
           

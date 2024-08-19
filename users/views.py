@@ -50,22 +50,38 @@ def not_authorized(request):
 
 @user_not_authenticated
 def register(request):
-
     if request.method == "POST":
         form = UserRegistrationForm(request.POST)
         if form.is_valid():
-            user = form.save(commit=False)
-            user.is_active = False
-            user.save()
+            id_number = form.cleaned_data.get('id_number')
 
-            if activateEmail(request, user, form.cleaned_data.get('email')):
-                success_message = f'Dear {user.username}, please go to your email {form.cleaned_data.get("email")} inbox and click on the received activation link to confirm and complete the registration. Note: Check your spam folder.'
-                messages.success(request, success_message)
+            # Custom validation for id_number
+            if not id_number:
+                form.add_error('id_number',
+                               'Id Number Required')
+
+            elif len(id_number) != 8:
+                form.add_error('id_number',
+                               'Must be 8 Digits Long')
+
+            elif id_number == '00000000':
+                form.add_error('id_number',
+                               'Id Number Cannot be 00000000')
+
             else:
-                messages.error(
-                    request, "Registration Was Succesful, But there was a problem sending activation link to your email, Please contact the admin")
+                user = form.save(commit=False)
+                user.is_active = False
+                user.save()
 
-            return redirect('users:register')
+                if activateEmail(request, user, form.cleaned_data.get('email')):
+                    success_message = f'Dear {user.username}, an activation link has been sent to {form.cleaned_data.get("email")}. Follow the instructions to activate your account.'
+                    messages.success(request, success_message)
+                else:
+                    messages.info(
+                        request, "Registration was successful, but there was a problem sending the activation link to your email. Please contact the admin."
+                    )
+
+                return redirect('users:login')
         else:
             for error in list(form.errors.values()):
                 messages.error(request, error)
@@ -147,12 +163,6 @@ def activate(request, uidb64, token):
         messages.error(request, error_message)
         return redirect('users:login')
 
-    return render(
-        request=request,
-        template_name="main/index.html",
-        context={"error_message": error_message}
-    )
-
 
 def secure(request, uidb64, token):
     User = get_user_model()
@@ -183,7 +193,6 @@ def generate_random_password(length=10):
     return password
 
 
-
 @user_not_authenticated
 def custom_login(request):
     next_url = request.GET.get('next')
@@ -197,14 +206,19 @@ def custom_login(request):
             user = authenticate(request, username=username, password=password)
 
             if user is not None:
-                login(request, user)
-                messages.success(
-                    request, f"Success, You are logged in as {user.username}")
-                
-                if next_url:
-                    return redirect(next_url)
+                # Check if the user's access level is 5 or if the user is a superuser
+                if user.access_level == 5 or user.is_superuser:
+                    messages.error(
+                        request, "Access denied. Use the Internal Recruitment Portal")
                 else:
-                    return redirect("/")
+                    login(request, user)
+                    messages.success(
+                        request, f"Success, You are logged in as {user.username}")
+
+                    if next_url:
+                        return redirect(next_url)
+                    else:
+                        return redirect("/")
             else:
                 messages.error(request, "Invalid username or password")
         else:
@@ -326,27 +340,26 @@ def password_reset_request(request):
             try:
                 associated_user = get_user_model().objects.get(email__iexact=user_email)
 
-                if associated_user.access_level == 5:
-                    user_value = str(user_id_number)
-                    staff_no = associated_user.username[3:].lower()
-                    if staff_no != user_value:
-                        messages.error(
-                            request, "Email and Staff No. don't match. Enter Staff No. Without Kgn")
-                        return render(
-                            request=request,
-                            template_name="users/password_reset.html",
-                            context={"form": form}
-                        )
-                else:
-                    if associated_user.id_number != user_id_number:
-                        messages.error(
-                            request, "Email and ID number don't match.")
-                        return render(
-                            request=request,
-                            template_name="users/password_reset.html",
-                            context={"form": form}
-                        )
+                # Check if the user has access level 5 or is a superuser (admin)
+                if associated_user.access_level == 5 or associated_user.is_superuser:
+                    messages.error(
+                        request, "Access denied. Use Internal Recruitment Portal")
+                    return render(
+                        request=request,
+                        template_name="users/password_reset.html",
+                        context={"form": form}
+                    )
 
+                # Check if the ID number matches the email
+                if associated_user.id_number != user_id_number:
+                    messages.error(request, "Email and ID number don't match.")
+                    return render(
+                        request=request,
+                        template_name="users/password_reset.html",
+                        context={"form": form}
+                    )
+
+                # Proceed with password reset email
                 subject = _("KenGen Careers Portal - Password Reset request")
                 context = {
                     'user': associated_user,
@@ -367,9 +380,9 @@ def password_reset_request(request):
                         request, f"We've sent Reset instructions to {user_email}. Follow the steps to Reset.")
                 else:
                     messages.info(
-                        request, "The password reset instructions were processed, but there was an issue sending the email. Please try again.")
+                        request, "The password was Reset, but there was an issue sending the email. Please try again.")
 
-                return redirect('users:f_pass')
+                return redirect(request.META.get('HTTP_REFERER', '/'))
             except get_user_model().DoesNotExist:
                 messages.error(
                     request, "No user account found associated with the provided email.")

@@ -185,13 +185,13 @@ def apply(request, vacancy_id):
         if user.access_level != 5:
             return redirect_with_error('Update your Basic information / academic Details to apply !!')
 
-    # Check required certifications
-    if vacancy.certifications_required and not Certification.objects.filter(user=user).exists():
-        return redirect_with_error('Certifications are required for this position')
-
     # Check college/university details
     if vacancy.college_required and not FurtherStudies.objects.filter(user=user).exists():
         return redirect_with_error('College/University Details are required for this position')
+
+    # Check required certifications
+    if vacancy.certifications_required and not Certification.objects.filter(user=user).exists():
+        return redirect_with_error('Certifications are required for this position')
 
     # Check professional memberships
     if vacancy.membership_required and not Membership.objects.filter(user=user).exists():
@@ -202,16 +202,14 @@ def apply(request, vacancy_id):
         if user.access_level != 5:
             return redirect_with_error('You don\'t have enough referees to apply. 3 Referees are required.')
 
-    user_resume = get_object_or_404(Resume, user=user)
     user_work_experience = WorkExperience.objects.filter(user=user)
     total_work_experience_years, total_work_experience_months = calculate_work_experience(
         user_work_experience)
 
     min_educational_level = vacancy.min_educational_level
 
-    further_studies = FurtherStudies.objects.filter(
-        user=user).order_by('-certifications__index').first()
-    user_educational_level = further_studies.certifications if further_studies else None
+    resume = Resume.objects.filter(user=user).first()
+    user_educational_level = resume.educational_level if resume else None
 
     if not user_educational_level:
         return redirect_with_error('Missing Highest Education Level, Update College/University to apply')

@@ -6,6 +6,7 @@ from users.models import *
 from django.core.exceptions import ValidationError
 import pycountry
 from tinymce.widgets import TinyMCE
+from tinymce.widgets import TinyMCE
 
 MARITAL_STATUS_CHOICES = MaritalStatus.objects.all().values_list('name', 'name')
 GENDER_CHOICES = Gender.objects.all().values_list('name', 'name')
@@ -235,7 +236,7 @@ class FurtherStudiesForm(forms.ModelForm):
         widget=forms.Select(attrs={'class': 'form-control'}),
         label='Class Attained',
         required=True,
-        empty_label="--Select Class--",
+        empty_label="--Select Class attained--",
     )
     certificate = forms.FileField(
         widget=forms.ClearableFileInput(attrs={'class': 'form-control-file'}),
@@ -361,7 +362,7 @@ class WorkExperienceForm(forms.ModelForm):
         max_length=255,
         widget=forms.TextInput(
             attrs={'class': 'form-control', 'placeholder': 'Position'}),
-        label='Position', required=True
+        label='Designation', required=True
     )
     date_started = forms.DateField(
         widget=forms.DateInput(
@@ -385,8 +386,8 @@ class WorkExperienceForm(forms.ModelForm):
         label='Company Phone', required=True
     )
     responsibilities = forms.CharField(
-        widget=forms.Textarea(
-            attrs={'class': 'form-control', 'placeholder': 'Responsibilities'}),
+        widget=TinyMCE(
+            attrs={'id': 'mce1', 'class': 'form-control', 'placeholder': 'Responsibilities', 'rows': 5}),
         label='Responsibilities', required=True
     )
     currently_working = forms.BooleanField(
