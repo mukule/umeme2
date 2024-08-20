@@ -54,6 +54,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'main.middleware.AutoLogoutMiddleware',
 ]
 
 ROOT_URLCONF = 'ejobs.urls'
@@ -148,8 +149,10 @@ EMAIL_PORT = 465
 EMAIL_USE_SSL = True
 DEFAULT_FROM_EMAIL = 'hrm@careers.kengen.co.ke'
 BCC_EMAILS = ['careers@kengen.co.ke', 'nelson.masibo@kenyaweb.com']
-# BCC_EMAILS = ['bcc1@example.com', 'bcc2@example.com']
 
 
 ADMIN_EMAIL = 'nelson@kenyaweb.com'
 PASSWORD_RESET_TIMEOUT = 1800
+
+# sessions handlers
+AUTO_LOGOUT_DELAY = 1800
