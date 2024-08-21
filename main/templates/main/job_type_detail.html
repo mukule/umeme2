@@ -21,11 +21,11 @@
     </div>
 
     <div class="page-content">
-         <div class="container">
+         <div class="container mt-4">
             <div class="card p-5 border-0">
-                <h2 class="card-title text-center" style="color: #FD7E14;">Advertised Vacancies - {{ job_type.name }}</h2>
+                <h2 class="card-title text-center" style="color: #FD7E14;">{{ job_type.name }} Opportunities</h2>
 
-                <section class="search-section col-md-12 mx-auto shadow-sm">
+                <section class="search-section col-md-12 mx-auto shadow-sm mt-4">
                     <form method="get">
                         <div class="row">
                             <div class="col-md-4 mb-2">
@@ -70,7 +70,7 @@
                 </div>
                 {% else %}
                 <section class="no-opportunities col-md-6 mx-auto my-2 shadow-sm text-center rounded d-flex align-items-center">
-                    <p class="text-white mx-auto mt-2 px-4">There are no Advertised {{ job_type.name }} Opportunities</p>
+                    <p class="text-white mx-auto mt-2 px-4">There are no {{ job_type.name }} Opportunities</p>
                 </section>
                 {% endif %}
             </div>
